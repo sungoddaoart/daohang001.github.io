@@ -1,9 +1,9 @@
-const { withPayload } = require('@payloadcms/next-payload');
-
-module.exports = withPayload({
-  // 你的 Next.js 配置
-  experimental: {
-    serverActions: true,
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: ['localhost'], // 如果你的图片托管在其他域名上，请添加到这个数组中
   },
-});
+}
+
+module.exports = nextConfig
 

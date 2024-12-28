@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SiteSettings {
+  id                 Int      @id @default(autoincrement())
+  siteName           String
+  siteSubtitle       String?
+  siteKeywords       String?
+  metaDescription    String?
+  logo               String?
+  favicon            String?
+  customAdCode       String?
+  googleAnalyticsId  String?
+  baiduAnalyticsId   String?
+  emailServer        String?
+  emailPort          String?
+  emailUser          String?
+  emailPassword      String?
+  primaryColor       String   @default("#000000")
+  secondaryColor     String   @default("#ffffff")
+  facebookUrl        String?
+  twitterUrl         String?
+  linkedinUrl        String?
+  privacyPolicy      String?
+  termsOfService     String?
+  enableMultilingual Boolean  @default(false)
+  languages          String[] @default(["en"])
+}
+
+model Dapp {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  blockchain  String
+  url         String
+  icon        String?
+  showStats   Boolean  @default(false)
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  parentId    Int?
+  parent      Category? @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryToCategory")
+  dapps       Dapp[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("user")
+}
+

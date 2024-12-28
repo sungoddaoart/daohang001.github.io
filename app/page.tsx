@@ -1,137 +1,44 @@
-import { getPayloadClient } from '../payload/payloadClient';
-import Link from 'next/link';
-import Image from 'next/image';
-import Ad from '../components/Ad';
+'use client'
 
-export default async function Home() {
-  const payload = await getPayloadClient();
+import { useState } from 'react'
+import Link from 'next/link'
+import { dapps, categories, blockchains } from './dapps'
+import { DAppCard } from './components/DAppCard'
+import { Sidebar } from './components/Sidebar'
 
-  const { docs: categories } = await payload.find({
-    collection: 'categories',
-    limit: 10,
-  });
+export default function Home() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedBlockchain, setSelectedBlockchain] = useState<string | null>(null)
 
-  const { docs: dapps } = await payload.find({
-    collection: 'dapp-projects',
-    limit: 10,
-    sort: '-createdAt',
-  });
-
-  const { docs: topDapps } = await payload.find({
-    collection: 'dapp-projects',
-    limit: 5,
-    sort: '-popularity',
-  });
-
-  const { docs: topAds } = await payload.find({
-    collection: 'advertisements',
-    where: {
-      position: {
-        equals: 'top',
-      },
-      startDate: {
-        less_than_or_equal_to: new Date(),
-      },
-      endDate: {
-        greater_than_or_equal_to: new Date(),
-      },
-    },
-    limit: 1,
-  });
-
-  const { docs: sidebarAds } = await payload.find({
-    collection: 'advertisements',
-    where: {
-      position: {
-        equals: 'sidebar',
-      },
-      startDate: {
-        less_than_or_equal_to: new Date(),
-      },
-      endDate: {
-        greater_than_or_equal_to: new Date(),
-      },
-    },
-    limit: 2,
-  });
+  const filteredDapps = dapps.filter(dapp => 
+    (!selectedCategory || dapp.category === selectedCategory) &&
+    (!selectedBlockchain || dapp.blockchain === selectedBlockchain)
+  )
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Sidebar - Categories */}
-        <aside className="lg:w-1/4">
-          <h2 className="text-2xl font-semibold mb-4">Categories</h2>
-          <ul className="space-y-2">
-            {categories.map((category) => (
-              <li key={category.id}>
-                <Link href={`/categories/${category.id}`} className="text-blue-600 hover:underline">
-                  {category.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </aside>
-
-        {/* Main Content - DApp Projects */}
-        <main className="lg:w-2/4">
-          {/* Top Ad Space */}
-          {topAds.length > 0 && (
-            <div className="mb-8">
-              <Ad {...topAds[0]} />
-            </div>
-          )}
-
-          <h2 className="text-2xl font-semibold mb-4">Featured DApps</h2>
-          <ul className="space-y-6">
-            {dapps.map((dapp) => (
-              <li key={dapp.id} className="border-b pb-4">
-                <Link href={`/dapps/${dapp.id}`} className="flex items-center">
-                  {dapp.logo && (
-                    <Image
-                      src={dapp.logo.url}
-                      alt={dapp.title}
-                      width={64}
-                      height={64}
-                      className="mr-4 rounded-full"
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-xl font-medium text-blue-600 hover:underline">{dapp.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{dapp.description}</p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </main>
-
-        {/* Right Sidebar - Top DApps and Ads */}
-        <aside className="lg:w-1/4">
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Top DApps</h2>
-            <ul className="space-y-4">
-              {topDapps.map((dapp, index) => (
-                <li key={dapp.id} className="flex items-center">
-                  <span className="text-2xl font-bold mr-4 text-gray-400">{index + 1}</span>
-                  <Link href={`/dapps/${dapp.id}`} className="text-blue-600 hover:underline">
-                    {dapp.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Sponsored</h2>
-            <div className="space-y-4">
-              {sidebarAds.map((ad) => (
-                <Ad key={ad.id} {...ad} />
-              ))}
-            </div>
-          </div>
-        </aside>
-      </div>
+    <div className="flex flex-col md:flex-row">
+      <Sidebar 
+        categories={categories}
+        blockchains={blockchains}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedBlockchain={selectedBlockchain}
+        setSelectedBlockchain={setSelectedBlockchain}
+      />
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold mb-6">DApp 目录</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDapps.map((dapp) => (
+            <Link key={dapp.id} href={`/dapp/${dapp.id}`}>
+              <DAppCard dapp={dapp} />
+            </Link>
+          ))}
+        </div>
+        {filteredDapps.length === 0 && (
+          <p className="text-center text-gray-500 mt-10">没有找到符合条件的 DApp</p>
+        )}
+      </main>
     </div>
-  );
+  )
 }
 

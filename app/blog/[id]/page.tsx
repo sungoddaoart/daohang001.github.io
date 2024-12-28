@@ -1,32 +1,25 @@
-import { getPayloadClient } from '../../../payload/payloadClient';
-import Link from 'next/link';
+import { blogPosts } from '../../blogPosts'
+import Link from 'next/link'
 
-export default async function BlogPostPage({ params }: { params: { id: string } }) {
-  const payload = await getPayloadClient();
+export default function BlogPost({ params }: { params: { id: string } }) {
+  const post = blogPosts.find(p => p.id === parseInt(params.id))
 
-  const post = await payload.findByID({
-    collection: 'blog-posts',
-    id: params.id,
-  });
+  if (!post) {
+    return <div>文章未找到</div>
+  }
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-      <p className="text-sm text-gray-600 mb-8">
-        By {post.author.name} | Category: <Link href={`/categories/${post.category.id}`} className="text-blue-600 hover:underline">{post.category.name}</Link>
-      </p>
-      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Tags</h2>
-        <div className="flex flex-wrap gap-2">
-          {post.tags.map((tag, index) => (
-            <span key={index} className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-              {tag.tag}
-            </span>
-          ))}
-        </div>
+    <div>
+      <Link href="/blog" className="text-blue-600 hover:underline mb-4 inline-block">&larr; 返回博客列表</Link>
+      <h2 className="text-3xl font-bold mb-4">{post.title}</h2>
+      <div className="mb-4 text-gray-600">
+        <span>{post.author}</span> · <span>{post.date}</span> · 
+        <Link href={`/blog?category=${post.category}`} className="text-blue-500 hover:underline ml-1">
+          {post.category}
+        </Link>
       </div>
+      <p className="whitespace-pre-wrap">{post.content}</p>
     </div>
-  );
+  )
 }
 
